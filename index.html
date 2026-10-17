@@ -85,6 +85,11 @@ body.v .tkids .kid{margin:6px 0 0}
 .dot:nth-child(5){background:#4a4a4a}
 @media(max-height:720px) and (min-width:701px){.dot{width:80px;height:80px;font-size:12px}.nav{gap:10px}}
 .dot:hover{opacity:.85}
+.navtog{position:fixed;left:14px;top:calc(env(safe-area-inset-top,0px) + 14px);width:34px;height:34px;border-radius:50%;border:0;background:#222;padding:0;cursor:pointer;z-index:7;writing-mode:horizontal-tb}
+body.navoff .navtog{background-color:#e0392d;background-image:linear-gradient(#fff,#fff),linear-gradient(#fff,#fff),linear-gradient(#fff,#fff);background-repeat:no-repeat;background-size:18px 2px;background-position:center 9px,center 16px,center 23px}
+body.navoff .nav{display:none}
+body.navoff main{padding-left:24px}
+body.v.navoff main{padding-left:36px}
 .dot.on{transform:scale(1.1)}
 #pages h2{font-weight:600;font-size:22px;margin:0 0 16px}
 #pages p{margin:0 0 14px;font-size:15px}
@@ -121,6 +126,7 @@ body.v .srcs{margin:0 14px}
 </style>
 </head>
 <body>
+<button class="navtog" id="navtog" type="button" aria-label="メニューを開閉" title="メニューを開閉"></button>
 <nav class="nav" id="nav"></nav>
 <div class="search" id="search">
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
@@ -601,6 +607,9 @@ body.v .srcs{margin:0 14px}
     }
     render();window.scrollTo(0,0);
   }
+  var navOff=false;
+  try{var nv=localStorage.getItem("nyu-saijiki-navoff");navOff=nv===null?window.innerWidth<=700:nv==="1"}catch(e){}
+  function applyNav(){document.body.classList.toggle("navoff",navOff)}
   function clearOpen(){
     openId=null;
     try{if(/^#k=/.test(location.hash))history.pushState(null,"",location.pathname+location.search)}catch(e){}
@@ -795,6 +804,8 @@ body.v .srcs{margin:0 14px}
   $("f-addsrc").onclick=function(){srcRow($("f-srcs"))};
 
   kuRow($("f-kus"));
+  $("navtog").onclick=function(){navOff=!navOff;try{localStorage.setItem("nyu-saijiki-navoff",navOff?"1":"0")}catch(e){}applyNav()};
+  applyNav();
   srcRow($("f-srcs"));mountImg();buildNav();renderTabs();
   items=lsLoad();route();
   if(SBON)sbStart();
