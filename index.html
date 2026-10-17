@@ -29,7 +29,7 @@ details.add summary::-webkit-details-marker{display:none}
 .form{display:grid;gap:12px;margin-top:18px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .row>div{min-width:0}
-.row.kurow{grid-template-columns:3fr 2fr}
+.row.kurow{grid-template-columns:calc((100% - 12px) * 0.6 + 1em) minmax(0,1fr)}
 label{font-size:12px;color:var(--sub);display:block}
 .entry{padding:28px 0 16px;border-bottom:1px solid var(--line)}
 .entry h2{font-weight:600;font-size:22px;margin:0;display:inline}
@@ -37,8 +37,9 @@ label{font-size:12px;color:var(--sub);display:block}
 .season{float:right;font-size:12px;color:var(--sub);border:1px solid var(--line);padding:0 8px}
 .kid{margin-left:18px;font-size:18px}
 .kid rt{font-size:9px}
-.desc{margin:10px 0 14px;font-size:15px;white-space:pre-wrap}
-.ku{margin:6px 0 6px 1em;font-size:16px;white-space:pre-wrap}
+.desc{margin:10px 0 14px;font-size:17px;white-space:pre-wrap}
+.ku{margin:6px 0;font-size:16px;white-space:pre-wrap}
+.ku.kufirst{margin-top:26px}
 .ku small{color:var(--fg);font-size:14px;margin-left:32px}
 .acts{display:flex;justify-content:flex-end;margin-top:4px}
 .edit{background:none;border:0;color:#aaa;cursor:pointer;padding:4px;line-height:0}
@@ -57,10 +58,11 @@ body.v .season{float:none;display:inline-block;margin:0 0 12px}
 body.v .yomi{margin:12px 0 0}
 body.v .kid{margin:12px 0 0}
 body.v .desc{margin:0 14px}
-body.v .ku{margin:0 6px;padding-top:1em}
+body.v .ku{margin:0 6px;padding-top:0}
+body.v .ku.kufirst{margin-top:0;margin-right:26px}
 body.v .ku small{margin:32px 0 0}
 body.v .empty{padding:0 48px}
-.search{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);right:18px;z-index:5;writing-mode:horizontal-tb;width:170px}
+.search{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:18px;z-index:5;writing-mode:horizontal-tb;width:170px}
 .search svg{position:absolute;left:0;top:50%;transform:translateY(-50%);color:var(--sub);pointer-events:none}
 .search input{border:0;border-bottom:1px solid var(--line);padding:4px 4px 4px 24px;font-size:14px;background:transparent}
 #list.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
@@ -85,7 +87,7 @@ body.v .tkids .kid{margin:6px 0 0}
 .dot:nth-child(5){background:#4a4a4a}
 @media(max-height:720px) and (min-width:701px){.dot{width:80px;height:80px;font-size:12px}.nav{gap:10px}}
 .dot:hover{opacity:.85}
-.navtog{position:fixed;left:14px;top:calc(env(safe-area-inset-top,0px) + 14px);width:34px;height:34px;border-radius:50%;border:0;background:#222;padding:0;cursor:pointer;z-index:7;writing-mode:horizontal-tb}
+.navtog{position:absolute;left:14px;top:calc(env(safe-area-inset-top,0px) + 14px);width:34px;height:34px;border-radius:50%;border:0;background:#222;padding:0;cursor:pointer;z-index:7;writing-mode:horizontal-tb}
 body.navoff .navtog{background-color:#e0392d;background-image:linear-gradient(#fff,#fff),linear-gradient(#fff,#fff),linear-gradient(#fff,#fff);background-repeat:no-repeat;background-size:18px 2px;background-position:center 9px,center 16px,center 23px}
 body.navoff .nav{display:none}
 body.navoff main{padding-left:24px}
@@ -122,7 +124,7 @@ body.v main{padding-left:140px}
 body.v .srcs{margin:0 14px}
 .empty{text-align:center;color:var(--sub);padding:48px 0}
 .foot{display:flex;gap:20px;align-items:center;margin-top:8px}
-@media(max-width:480px){.row{grid-template-columns:1fr}.row.kurow{grid-template-columns:3fr 2fr}}
+@media(max-width:480px){.row{grid-template-columns:1fr}.row.kurow{grid-template-columns:calc((100% - 12px) * 0.6 + 1em) minmax(0,1fr)}}
 </style>
 </head>
 <body>
@@ -169,7 +171,8 @@ body.v .srcs{margin:0 14px}
   try{tiles=localStorage.getItem("nyu-saijiki-tiles")==="1"}catch(e){}
   var MASTER="new.saijiki.2000@gmail.com";
   try{var sv=JSON.parse(localStorage.getItem("nyu-saijiki-me")||"null");if(sv&&sv.email&&sv.id)me={id:sv.id,email:sv.email,master:sv.email===MASTER}}catch(e){}
-  var userColl=null;
+  var userColl=null,pagesColl=null,pageTexts={},pgEditing=null,pgMaster=false;
+  try{pageTexts=JSON.parse(localStorage.getItem("nyu-saijiki-pages")||"{}")}catch(e){}
   /* ===== Supabase 設定（使うときは下の2つを入れる。空のときは従来どおりの保存） ===== */
   var SB={url:"https://iknhbnbwnhesmurrcckj.supabase.co",key:"sb_publishable_6DTCmfU4sUsuT1o1AZQHww_mKEp3pX4"};   // 例: url:"https://xxxx.supabase.co", key:"（anon public key）"
   var SBON=!!(SB.url&&SB.key);
@@ -230,7 +233,13 @@ body.v .srcs{margin:0 14px}
         if(first||(JSON.stringify(list)!==JSON.stringify(items)&&editingId===null)){items=list;render()}
       }).catch(function(){if(!warned){warned=true;alert("Supabase に接続できません。設定と通信状況をご確認ください。")}});
     }
-    pull(true);setInterval(function(){pull(false)},20000);
+    function pullPages(){
+      sbFetch("/rest/v1/site_pages?select=id,body").then(function(rows){
+        var m={};(rows||[]).forEach(function(r){m[r.id]=r.body});
+        if(JSON.stringify(m)!==JSON.stringify(pageTexts)&&pgEditing===null){pageTexts=m;refreshPage()}
+      }).catch(function(){});
+    }
+    pull(true);pullPages();setInterval(function(){pull(false);pullPages()},20000);
   }
   try{vertical=localStorage.getItem("nyu-saijiki-vert")==="1"}catch(e){}
   var items=[], coll=null, LS="nyu-saijiki-v1";
@@ -595,15 +604,59 @@ body.v .srcs{margin:0 14px}
     };
     pg.appendChild(f);
   }
+  function pageLines(key){
+    var t=pageTexts[key];
+    if(typeof t==="string")return t.split("\n").filter(function(x){return x.trim()});
+    return PAGES[key].b;
+  }
+  function savePage(key,text){
+    var t=String(text||"").replace(/\r/g,"").trim();
+    if(t)pageTexts[key]=t;else delete pageTexts[key];
+    if(SBON){
+      var p=t
+        ?sbFetch("/rest/v1/site_pages?on_conflict=id",{method:"POST",prefer:"resolution=merge-duplicates,return=minimal",body:[{id:key,body:t,updated_at:new Date().toISOString()}]})
+        :sbFetch("/rest/v1/site_pages?id=eq."+encodeURIComponent(key),{method:"DELETE"});
+      p.catch(function(){alert("サーバーに保存できませんでした。通信状況と、Supabase の設定（site_pages の表）をご確認ください。")});
+      return;
+    }
+    if(pagesColl){
+      (t?pagesColl.doc(key).set({body:t}):pagesColl.doc(key).delete()).catch(function(){alert("保存できませんでした。")});
+      return;
+    }
+    try{localStorage.setItem("nyu-saijiki-pages",JSON.stringify(pageTexts))}catch(e){}
+  }
+  function buildPage(key,editMode){
+    var P=PAGES[key],pg=$("pages");pg.textContent="";
+    pgMaster=!!(me&&me.master);pgEditing=editMode?key:null;
+    pg.appendChild(el("h2","",P.t));
+    if(editMode){
+      var ta=el("textarea");ta.rows=10;ta.value=pageLines(key).join("\n");
+      var foot=el("div","foot");
+      var ok=el("button","btn","保存"),cn=el("button","link","キャンセル");
+      ok.type="button";cn.type="button";
+      ok.onclick=function(){savePage(key,ta.value);buildPage(key)};
+      cn.onclick=function(){buildPage(key)};
+      pg.appendChild(field("文章（1行が1段落になります。空にして保存すると元の文に戻ります）",ta));
+      foot.appendChild(ok);foot.appendChild(cn);pg.appendChild(foot);
+      return;
+    }
+    pageLines(key).forEach(function(s){pg.appendChild(el("p","",s))});
+    if(key==="contact")contactForm(pg);
+    if(key==="join")joinForm(pg);
+    if(key==="admin")adminForm(pg);
+    if(pgMaster&&key!=="admin"){
+      var ac=el("div","acts"),eb=el("button","edit");
+      eb.type="button";eb.setAttribute("aria-label","文章を編集");eb.title="文章を編集";
+      eb.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>';
+      eb.onclick=function(){buildPage(key,true)};
+      ac.appendChild(eb);pg.appendChild(ac);
+    }
+  }
+  function refreshPage(){if(page!==null&&pgEditing===null)buildPage(page)}
   function showPage(key){
     page=key;editingId=null;histId=null;clearOpen();
     if(key){
-      var P=PAGES[key],pg=$("pages");pg.textContent="";
-      pg.appendChild(el("h2","",P.t));
-      P.b.forEach(function(s){pg.appendChild(el("p","",s))});
-      if(key==="contact")contactForm(pg);
-      if(key==="join")joinForm(pg);
-      if(key==="admin")adminForm(pg);
+      buildPage(key);
     }
     render();window.scrollTo(0,0);
   }
@@ -715,6 +768,7 @@ body.v .srcs{margin:0 14px}
   function render(){
     if(page==="admin"&&!(me&&me.master))page=null;
     document.title="ニュ・歳時記";
+    if(page!==null&&pgEditing===null&&pgMaster!==!!(me&&me.master))buildPage(page);
     var wa=!!(me&&me.master);if(wa!==navAdmin){navAdmin=wa;buildNav()}
     var box=$("list");box.textContent="";
     $("tabs").style.display=(editingId===null&&openId===null&&page===null&&histId===null)?"":"none";
@@ -750,8 +804,8 @@ body.v .srcs{margin:0 14px}
         e.appendChild(s);
       });
       if(it.desc)e.appendChild(el("div","desc",openId!==null||it.desc.length<=60?it.desc:it.desc.slice(0,60)+"…"));
-      (openId!==null?(it.examples||[]):(it.examples||[]).slice(0,1)).forEach(function(k){
-        var p=el("div","ku",k.text);
+      (openId!==null?(it.examples||[]):(it.examples||[]).slice(0,1)).forEach(function(k,ki){
+        var p=el("div","ku"+(ki===0?" kufirst":""),k.text);
         if(k.by)p.appendChild(el("small","",k.by));
         e.appendChild(p);
       });
@@ -816,6 +870,11 @@ body.v .srcs{margin:0 14px}
       var db=await claude.use("db");
       if(!db)return;
       coll=db.collection("kigo");userColl=db.collection("users");
+      pagesColl=db.collection("pages");
+      pagesColl.onSnapshot(function(snap){
+        var m={};snap.docs.forEach(function(d){var x=d.data()||{};if(typeof x.body==="string")m[d.id]=x.body});
+        pageTexts=m;refreshPage();
+      },function(){});
       coll.onSnapshot(function(snap){
         items=snap.docs.map(function(d){var x=d.data()||{};x.id=d.id;return x});
         if(editingId===null)render();
