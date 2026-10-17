@@ -141,7 +141,7 @@ body.v .srcs{margin:0 14px}
       </div>
       <div id="f-kids"></div>
       <div><button class="link" id="f-addkid" type="button">＋ 子季語を加える</button></div>
-      <div><label>解説</label><textarea id="f-desc" rows="4"></textarea></div>
+      <div><label>解説</label><textarea id="f-desc" rows="10"></textarea></div>
       <div id="f-kus"></div>
       <div><button class="link" id="f-addrow" type="button">＋ 句を加える</button></div>
       <div id="f-srcs"></div>
@@ -165,27 +165,28 @@ body.v .srcs{margin:0 14px}
   try{var sv=JSON.parse(localStorage.getItem("nyu-saijiki-me")||"null");if(sv&&sv.email&&sv.id)me={id:sv.id,email:sv.email,master:sv.email===MASTER}}catch(e){}
   var userColl=null;
   /* ===== Supabase 設定（使うときは下の2つを入れる。空のときは従来どおりの保存） ===== */
-  var SB={url:"",key:""};   // 例: url:"https://xxxx.supabase.co", key:"（anon public key）"
+  var SB={url:"https://iknhbnbwnhesmurrcckj.supabase.co",key:"sb_publishable_6DTCmfU4sUsuT1o1AZQHww_mKEp3pX4"};   // 例: url:"https://xxxx.supabase.co", key:"（anon public key）"
   var SBON=!!(SB.url&&SB.key);
-  if(SBON)SB.url=SB.url.replace(/\/+$/,"");
+  if(SBON)SB.url=SB.url.replace(/\/rest\/v1\/?$/,"").replace(/\/+$/,"");
   function sbSess(){try{return JSON.parse(localStorage.getItem("nyu-saijiki-sb")||"null")}catch(e){return null}}
   function sbSave(s){try{if(s)localStorage.setItem("nyu-saijiki-sb",JSON.stringify(s));else localStorage.removeItem("nyu-saijiki-sb")}catch(e){}}
   function sbFrom(d){return{access:d.access_token,refresh:d.refresh_token,exp:Date.now()+(d.expires_in||3600)*1000,user:{id:d.user.id,email:d.user.email}}}
   function sbMe(s){return{id:s.user.id,email:s.user.email,master:s.user.email===MASTER}}
   if(SBON){var ss0=sbSess();me=ss0&&ss0.user?sbMe(ss0):null}
   async function sbToken(){
-    var s=sbSess();if(!s)return SB.key;
+    var s=sbSess();if(!s)return "";
     if(s.exp-Date.now()>60000)return s.access;
     try{
       var r=await fetch(SB.url+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:SB.key,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:s.refresh})});
       var d=await r.json();
       if(!r.ok||!d.access_token)throw 0;
       s=sbFrom(d);sbSave(s);return s.access;
-    }catch(e){sbSave(null);me=null;render();return SB.key}
+    }catch(e){sbSave(null);me=null;render();return ""}
   }
   async function sbFetch(path,opt){
     opt=opt||{};
-    var h={apikey:SB.key,Authorization:"Bearer "+await sbToken(),"Content-Type":"application/json"};
+    var tk=await sbToken(),h={apikey:SB.key,"Content-Type":"application/json"};
+    if(tk)h.Authorization="Bearer "+tk;
     if(opt.prefer)h.Prefer=opt.prefer;
     var r=await fetch(SB.url+path,{method:opt.method||"GET",headers:h,body:opt.body?JSON.stringify(opt.body):undefined});
     if(!r.ok)throw new Error(r.status);
@@ -681,7 +682,7 @@ body.v .srcs{margin:0 14px}
     var row=el("div","row");row.appendChild(field("季語",w));row.appendChild(field("読み",y));
     var kids=el("div");(it.children||[]).forEach(function(k){kidRow(kids,k)});
     var addk=el("button","link","＋ 子季語を加える");addk.type="button";addk.onclick=function(){kidRow(kids)};
-    var ds=el("textarea");ds.rows=4;ds.value=it.desc||"";
+    var ds=el("textarea");ds.rows=10;ds.value=it.desc||"";
     var kus=el("div");(it.examples||[]).forEach(function(k){kuRow(kus,k)});
     var addu=el("button","link","＋ 句を加える");addu.type="button";addu.onclick=function(){kuRow(kus)};
     var srcs=el("div");(it.sources||[]).forEach(function(s){srcRow(srcs,s)});if(!(it.sources||[]).length)srcRow(srcs);
@@ -708,7 +709,7 @@ body.v .srcs{margin:0 14px}
     var wa=!!(me&&me.master);if(wa!==navAdmin){navAdmin=wa;buildNav()}
     var box=$("list");box.textContent="";
     $("tabs").style.display=(editingId===null&&openId===null&&page===null&&histId===null)?"":"none";
-    $("addbox").style.display=(editingId===null&&openId===null&&page===null&&histId===null&&me)?"":"none";
+    $("addbox").style.display=(editingId===null&&openId===null&&page===null&&histId===null)?"":"none";
     $("search").style.display=(editingId===null&&page===null)?"":"none";
     box.style.display=page===null?"":"none";
     $("pages").style.display=page===null?"none":"";
