@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ニュ・歳時記</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&display=swap">
+<style>
+:root{color-scheme:light;--bg:#fff;--fg:#222;--sub:#777;--line:#e6e6e6;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;line-height:1.9}
+main{max-width:640px;margin:0 auto;padding:56px 24px 96px}
+h1{font-weight:400;font-size:28px;letter-spacing:.3em;text-align:center;margin:0 0 40px}
+.tabs{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 18px;margin-bottom:32px}
+.tabs button{background:none;border:0;border-bottom:1px solid transparent;font:inherit;color:var(--sub);cursor:pointer;padding:2px 2px}
+.tabs button.on{color:var(--fg);border-bottom-color:var(--fg)}
+input,select,textarea{font:inherit;color:var(--fg);background:#fff;border:1px solid var(--line);border-radius:0;padding:8px 10px;inline-size:100%;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#999}
+textarea{resize:vertical}
+.btn{font:inherit;background:#fff;color:var(--fg);border:1px solid var(--fg);padding:6px 20px;cursor:pointer}
+.btn:hover{background:var(--fg);color:#fff}
+.link{background:none;border:0;font:inherit;font-size:13px;color:var(--sub);cursor:pointer;padding:0}
+.link:hover{color:var(--fg);text-decoration:underline}
+details.add{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 0;margin-bottom:40px}
+details.add summary{cursor:pointer;text-align:center;color:var(--sub);letter-spacing:.2em;list-style:none}
+details.add summary::-webkit-details-marker{display:none}
+.form{display:grid;gap:12px;margin-top:18px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row>div{min-width:0}
+.row.kurow{grid-template-columns:3fr 2fr}
+label{font-size:12px;color:var(--sub);display:block}
+.entry{padding:28px 0 16px;border-bottom:1px solid var(--line)}
+.entry h2{font-weight:600;font-size:22px;margin:0;display:inline}
+.yomi{color:var(--sub);font-size:13px;margin-left:10px}
+.season{float:right;font-size:12px;color:var(--sub);border:1px solid var(--line);padding:0 8px}
+.kid{margin-left:18px;font-size:18px}
+.kid rt{font-size:9px}
+.desc{margin:10px 0 14px;font-size:15px;white-space:pre-wrap}
+.ku{margin:6px 0 6px 1em;font-size:16px;white-space:pre-wrap}
+.ku small{color:var(--fg);font-size:14px;margin-left:32px}
+.acts{display:flex;justify-content:flex-end;margin-top:4px}
+.edit{background:none;border:0;color:#aaa;cursor:pointer;padding:4px;line-height:0}
+.edit:hover{color:var(--fg)}
+body.v{writing-mode:vertical-rl;overflow-x:auto;overflow-y:hidden;height:100vh}
+body.v main{max-width:none;margin:0;height:100vh;padding:64px 36px 32px}
+body.v h1{margin:0 0 0 44px;text-align:start}
+body.v .tabs{margin:0 0 0 40px;justify-content:flex-start}
+body.v .tabs button{border-bottom:0;border-left:1px solid transparent}
+body.v .tabs button.on{border-left-color:var(--fg)}
+body.v details.add{border-top:0;border-bottom:0;border-left:1px solid var(--line);border-right:1px solid var(--line);padding:0 14px;margin:0 0 0 40px}
+body.v .form{margin:0 16px 0 0;inline-size:min(100%,440px)}
+body.v textarea{resize:both}
+body.v #list .entry{border-bottom:0;border-left:1px solid var(--line);padding:4px 28px;height:calc(100vh - 96px)}
+body.v .season{float:none;display:inline-block;margin:0 0 12px}
+body.v .yomi{margin:12px 0 0}
+body.v .kid{margin:12px 0 0}
+body.v .desc{margin:0 14px}
+body.v .ku{margin:0 6px;padding-top:1em}
+body.v .ku small{margin:32px 0 0}
+body.v .empty{padding:0 48px}
+.search{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);right:18px;z-index:5;writing-mode:horizontal-tb;width:170px}
+.search svg{position:absolute;left:0;top:50%;transform:translateY(-50%);color:var(--sub);pointer-events:none}
+.search input{border:0;border-bottom:1px solid var(--line);padding:4px 4px 4px 24px;font-size:14px;background:transparent}
+#list.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+#list.grid .empty{grid-column:1/-1}
+.tile{position:relative;aspect-ratio:1/1;border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:14px;cursor:pointer;overflow:hidden;line-height:1.5}
+.tile:hover{border-color:var(--fg)}
+.tseason{position:absolute;top:6px;left:8px;font-size:11px;color:var(--sub)}
+.tword{font-size:20px;font-weight:600}
+.tyomi{font-size:11px;color:var(--sub)}
+.tkids{margin-top:8px;font-size:13px}
+.tkids .kid{margin:0 6px;font-size:13px}
+body.v #list.grid{display:flex;flex-flow:row wrap;align-content:flex-start;gap:14px;height:calc(100vh - 96px)}
+body.v .tile{width:150px;height:150px;aspect-ratio:auto}
+body.v .tseason{left:auto;right:8px}
+body.v .tkids .kid{margin:6px 0 0}
+.nav{position:fixed;left:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:16px;z-index:6;writing-mode:horizontal-tb}
+.dot{width:104px;height:104px;border-radius:50%;border:0;background:#c8372d;color:#fff;font:inherit;font-size:14px;line-height:1.3;padding:0;cursor:pointer;transition:transform .15s}
+.dot:nth-child(1){background:#c8372d}
+.dot:nth-child(2){background:#4f8a4b}
+.dot:nth-child(3){background:#e8892b}
+.dot:nth-child(4){background:#1e4a7a}
+.dot:nth-child(5){background:#4a4a4a}
+@media(max-height:720px) and (min-width:701px){.dot{width:80px;height:80px;font-size:12px}.nav{gap:10px}}
+.dot:hover{opacity:.85}
+.dot.on{transform:scale(1.1)}
+#pages h2{font-weight:600;font-size:22px;margin:0 0 16px}
+#pages p{margin:0 0 14px;font-size:15px}
+body.v #pages{height:calc(100vh - 96px)}
+body.v #pages h2{margin:0 0 0 24px}
+body.v #pages p{margin:0 0 0 14px}
+body.v main{padding-left:140px}
+@media(min-width:701px) and (max-width:960px){main{max-width:none;padding-left:140px}}
+@media(max-width:700px){.nav{left:8px;gap:10px}.dot{width:72px;height:72px;font-size:11px}main{padding-left:96px;padding-right:16px}body.v main{padding-left:100px}}
+.thumb{width:80px;height:80px;object-fit:cover;display:block;flex:none}
+.entry.hasimg{display:flex;gap:18px;align-items:flex-start}
+.entry.hasimg>.body{flex:1;min-width:0}
+.imgprev{display:flex;gap:14px;align-items:center;margin-bottom:8px}
+.crop-ov{position:fixed;inset:0;background:rgba(255,255,255,.97);z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;writing-mode:horizontal-tb}
+.crop-ov canvas{width:280px;height:280px;border:1px solid var(--line);touch-action:none;cursor:grab}
+.crop-ov input[type=range]{width:280px;inline-size:280px;border:0;padding:0}
+.crop-ov p{margin:0;font-size:13px;color:var(--sub)}
+.cmp{display:grid;grid-template-columns:4.5em 1fr 1fr;gap:6px 14px;font-size:14px;margin:8px 0 24px}
+.cmp div{white-space:pre-wrap;min-width:0;word-break:break-word}
+.cmp .h{color:var(--sub);font-size:12px}
+.cmp .c{font-weight:600}
+.hlog{margin:0 0 16px;font-size:14px;white-space:pre-wrap}
+.hlog .meta{font-size:12px;color:var(--sub)}
+.hh{font-weight:600;margin:22px 0 6px;font-size:15px}
+.hnote{font-size:13px;color:var(--sub)}
+.srcs{margin:14px 0 4px}
+#list.detail .entry h2{font-size:28px}
+.srchead{font-size:12px;color:var(--sub)}
+.src{font-size:13px}
+body.v .srcs{margin:0 14px}
+.empty{text-align:center;color:var(--sub);padding:48px 0}
+.foot{display:flex;gap:20px;align-items:center;margin-top:8px}
+@media(max-width:480px){.row{grid-template-columns:1fr}.row.kurow{grid-template-columns:3fr 2fr}}
+</style>
+</head>
+<body>
+<nav class="nav" id="nav"></nav>
+<div class="search" id="search">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
+  <input id="q" type="text" aria-label="検索" autocomplete="off">
+</div>
+<main>
+  <h1>ニュ・歳時記</h1>
+
+  <details class="add" id="addbox">
+    <summary>＋ 季語を加える</summary>
+    <div class="form">
+      <div><label>季節</label>
+        <select id="f-season"><option>春</option><option>夏</option><option>秋</option><option>冬</option><option>新年</option></select>
+      </div>
+      <div class="row">
+        <div><label>季語</label><input id="f-word"></div>
+        <div><label>読み</label><input id="f-yomi"></div>
+      </div>
+      <div id="f-kids"></div>
+      <div><button class="link" id="f-addkid" type="button">＋ 子季語を加える</button></div>
+      <div><label>解説</label><textarea id="f-desc" rows="4"></textarea></div>
+      <div id="f-kus"></div>
+      <div><button class="link" id="f-addrow" type="button">＋ 句を加える</button></div>
+      <div id="f-srcs"></div>
+      <div><button class="link" id="f-addsrc" type="button">＋ 出典を加える</button></div>
+      <div id="f-img"></div>
+      <div style="text-align:center"><button class="btn" id="f-save">登録する</button></div>
+    </div>
+  </details>
+
+  <div class="tabs" id="tabs"></div>
+  <div id="list"></div>
+  <div id="pages" style="display:none"></div>
+</main>
+
+<script>
+(function(){
+  var SEASONS=["春","夏","秋","冬","新年"];
+  var DEF=["冬","冬","春","春","春","夏","夏","夏","秋","秋","秋","冬"][new Date().getMonth()], cur=DEF, page=null, me=null, navAdmin=false, histId=null, editingId=null, vertical=false, qs="", tiles=false, openId=null;
+  try{tiles=localStorage.getItem("nyu-saijiki-tiles")==="1"}catch(e){}
+  var MASTER="new.saijiki.2000@gmail.com";
+  try{var sv=JSON.parse(localStorage.getItem("nyu-saijiki-me")||"null");if(sv&&sv.email&&sv.id)me={id:sv.id,email:sv.email,master:sv.email===MASTER}}catch(e){}
+  var userColl=null;
+  /* ===== Supabase 設定（使うときは下の2つを入れる。空のときは従来どおりの保存） ===== */
+  var SB={url:"",key:""};   // 例: url:"https://xxxx.supabase.co", key:"（anon public key）"
+  var SBON=!!(SB.url&&SB.key);
+  if(SBON)SB.url=SB.url.replace(/\/+$/,"");
+  function sbSess(){try{return JSON.parse(localStorage.getItem("nyu-saijiki-sb")||"null")}catch(e){return null}}
+  function sbSave(s){try{if(s)localStorage.setItem("nyu-saijiki-sb",JSON.stringify(s));else localStorage.removeItem("nyu-saijiki-sb")}catch(e){}}
+  function sbFrom(d){return{access:d.access_token,refresh:d.refresh_token,exp:Date.now()+(d.expires_in||3600)*1000,user:{id:d.user.id,email:d.user.email}}}
+  function sbMe(s){return{id:s.user.id,email:s.user.email,master:s.user.email===MASTER}}
+  if(SBON){var ss0=sbSess();me=ss0&&ss0.user?sbMe(ss0):null}
+  async function sbToken(){
+    var s=sbSess();if(!s)return SB.key;
+    if(s.exp-Date.now()>60000)return s.access;
+    try{
+      var r=await fetch(SB.url+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:SB.key,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:s.refresh})});
+      var d=await r.json();
+      if(!r.ok||!d.access_token)throw 0;
+      s=sbFrom(d);sbSave(s);return s.access;
+    }catch(e){sbSave(null);me=null;render();return SB.key}
+  }
+  async function sbFetch(path,opt){
+    opt=opt||{};
+    var h={apikey:SB.key,Authorization:"Bearer "+await sbToken(),"Content-Type":"application/json"};
+    if(opt.prefer)h.Prefer=opt.prefer;
+    var r=await fetch(SB.url+path,{method:opt.method||"GET",headers:h,body:opt.body?JSON.stringify(opt.body):undefined});
+    if(!r.ok)throw new Error(r.status);
+    var t=await r.text();return t?JSON.parse(t):null;
+  }
+  function bodyOf(it){return{word:it.word,yomi:it.yomi||"",season:it.season,desc:it.desc||"",examples:it.examples||[],children:it.children||[],sources:it.sources||[],img:it.img||"",owner:it.owner||"",first:it.first||{},log:it.log||[],at:it.at}}
+  async function sbLoad(){
+    var rows=await sbFetch("/rest/v1/kigo?select=id,data&order=updated_at.asc");
+    return rows.map(function(r){var x=r.data||{};x.id=r.id;return x});
+  }
+  function sbUpsert(it){
+    return sbFetch("/rest/v1/kigo?on_conflict=id",{method:"POST",prefer:"resolution=merge-duplicates,return=minimal",body:[{id:it.id,data:bodyOf(it),updated_at:new Date().toISOString()}]})
+      .catch(function(){alert("サーバーに保存できませんでした。通信状況と、Supabase の設定をご確認ください。")});
+  }
+  function sbDelete(id){
+    return sbFetch("/rest/v1/kigo?id=eq."+encodeURIComponent(id),{method:"DELETE"}).catch(function(){alert("サーバーから削除できませんでした。")});
+  }
+  async function sbRegister(email,pw){
+    var r=await fetch(SB.url+"/auth/v1/signup",{method:"POST",headers:{apikey:SB.key,"Content-Type":"application/json"},body:JSON.stringify({email:email,password:pw})});
+    var d=await r.json().catch(function(){return {}});
+    if(!r.ok)throw d.msg||d.error_description||d.message||"登録できませんでした。";
+    if(d.access_token&&d.user){var s=sbFrom(d);sbSave(s);me=sbMe(s);return}
+    throw "確認のメールを送りました。メール内のリンクを開いてから、ログインしてください。";
+  }
+  async function sbLogin(email,pw){
+    var r=await fetch(SB.url+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:SB.key,"Content-Type":"application/json"},body:JSON.stringify({email:email,password:pw})});
+    var d=await r.json().catch(function(){return {}});
+    if(!r.ok||!d.access_token)throw "メールアドレスまたはパスワードが違います。メールの確認がまだの場合は、確認を済ませてください。";
+    var s=sbFrom(d);sbSave(s);me=sbMe(s);
+  }
+  function sbStart(){
+    var warned=false;
+    function pull(first){
+      sbLoad().then(function(list){
+        if(first||(JSON.stringify(list)!==JSON.stringify(items)&&editingId===null)){items=list;render()}
+      }).catch(function(){if(!warned){warned=true;alert("Supabase に接続できません。設定と通信状況をご確認ください。")}});
+    }
+    pull(true);setInterval(function(){pull(false)},20000);
+  }
+  try{vertical=localStorage.getItem("nyu-saijiki-vert")==="1"}catch(e){}
+  var items=[], coll=null, LS="nyu-saijiki-v1";
+
+  function $(id){return document.getElementById(id)}
+  function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+  function field(label,node){var d=el("div");d.appendChild(el("label","",label));d.appendChild(node);return d}
+
+  function lsLoad(){try{return JSON.parse(localStorage.getItem(LS)||"[]")}catch(e){return []}}
+  function lsSave(){if(SBON)return;try{localStorage.setItem(LS,JSON.stringify(items))}catch(e){}}
+
+  function persist(it){
+    if(coll){
+      var body={word:it.word,yomi:it.yomi||"",season:it.season,desc:it.desc||"",examples:it.examples||[],children:it.children||[],sources:it.sources||[],img:it.img||"",owner:it.owner||"",first:it.first||{},log:it.log||[],at:it.at};
+      return coll.doc(it.id).set(body).catch(function(){alert("保存できませんでした（閲覧のみの権限かもしれません）")});
+    }
+    lsSave();if(SBON)return sbUpsert(it);
+  }
+  function remove(it){
+    if(!confirm("「"+it.word+"」を削除しますか？"))return;
+    editingId=null;
+    if(coll){coll.doc(it.id).delete().catch(function(){alert("削除できませんでした")});render()}
+    else{items=items.filter(function(x){return x.id!==it.id});lsSave();if(SBON)sbDelete(it.id);render()}
+  }
+
+  /* rows: 子季語 / 例句 */
+  function kidRow(box,k){
+    if(typeof k==="string")k={word:k};k=k||{};
+    var d=el("div","row");d.style.marginBottom="10px";
+    var a=el("input");a.value=k.word||"";var b=el("input");b.value=k.yomi||"";
+    d.appendChild(field("子季語",a));d.appendChild(field("読み",b));box.appendChild(d);
+  }
+  function kuRow(box,k){
+    k=k||{};
+    var d=el("div","row kurow");d.style.marginBottom="10px";
+    var a=el("input");a.value=k.text||"";var b=el("input");b.value=k.by||"";
+    d.appendChild(field("例句",a));d.appendChild(field("作者",b));box.appendChild(d);
+  }
+  function srcRow(box,s){var d=el("div");d.style.marginBottom="10px";var i=el("input");i.value=s||"";d.appendChild(field("出典 "+(box.children.length+1),i));box.appendChild(d)}
+  function collectSrcs(box){var out=[],ins=box.querySelectorAll("input");for(var i=0;i<ins.length;i++){var v=ins[i].value.trim();if(v)out.push(v)}return out}
+  function collectKids(box){
+    var out=[],rs=box.querySelectorAll(".row");
+    for(var i=0;i<rs.length;i++){var q=rs[i].querySelectorAll("input"),v=q[0].value.trim();if(v)out.push({word:v,yomi:q[1].value.trim()})}
+    return out;
+  }
+  function collectKus(box){
+    var out=[],rs=box.querySelectorAll(".row");
+    for(var i=0;i<rs.length;i++){var q=rs[i].querySelectorAll("input"),v=q[0].value.trim();if(v)out.push({text:v,by:q[1].value.trim()})}
+    return out;
+  }
+
+  var FIELDS=[["season","季節"],["word","季語"],["yomi","読み"],["children","子季語"],["desc","解説"],["examples","例句"],["sources","出典"],["img","画像"]];
+  function kidsStr(a){return (a||[]).map(function(k){return typeof k==="string"?k:(k.yomi?k.word+"（"+k.yomi+"）":k.word)}).join("・")}
+  function kusStr(a){return (a||[]).map(function(k){return k.by?k.text+"　"+k.by:k.text}).join("\n")}
+  function srcStr(a){return (a||[]).map(function(s,i){return (i+1)+". "+s}).join("\n")}
+  function snapOf(it){var im=it.img||"";return{season:it.season||"",word:it.word||"",yomi:it.yomi||"",children:kidsStr(it.children),desc:it.desc||"",examples:kusStr(it.examples),sources:srcStr(it.sources),img:im?"あり":"なし",_sig:im.length+":"+im.slice(-24)}}
+  function hasFirst(it){return !!(it.first&&it.first.word!=null)}
+  function mask(e){var p=e.split("@");return p[0].slice(0,1)+"***@"+(p[1]||"")}
+  function logChange(it,before){
+    var after=snapOf(it),ch=[];
+    FIELDS.forEach(function(fd){
+      var k=fd[0],chg=before[k]!==after[k]||(k==="img"&&before._sig!==after._sig);
+      if(chg)ch.push({f:fd[1],from:before[k],to:(k==="img"&&before[k]===after[k])?"あり（差し替え）":after[k]});
+    });
+    if(!ch.length)return;
+    if(!hasFirst(it))it.first=before;
+    it.log=(it.log||[]).concat([{at:Date.now(),by:me?(me.master?"マスター":mask(me.email)):"ゲスト（ログインなし）",ch:ch}]).slice(-50);
+  }
+  function historyView(it){
+    var e=el("div","entry");
+    e.appendChild(el("h2","",it.word));e.appendChild(el("span","yomi","変更履歴"));
+    e.appendChild(el("div","hh","初版との比較"));
+    var cur=snapOf(it);
+    if(!hasFirst(it)){
+      e.appendChild(el("div","hnote","初版の記録がありません。この季語は履歴の機能を加える前に登録されたため、最初の編集から記録されます。"));
+    }else{
+      var g=el("div","cmp");
+      g.appendChild(el("div","h",""));g.appendChild(el("div","h","初版"));g.appendChild(el("div","h","現在"));
+      FIELDS.forEach(function(fd){
+        var k=fd[0],a=it.first[k],b=cur[k],ch=(a||"")!==(b||"")||(k==="img"&&it.first._sig!==cur._sig);
+        g.appendChild(el("div","h",fd[1]+(ch?"（変更）":"")));
+        g.appendChild(el("div",ch?"c":"",a||"—"));g.appendChild(el("div",ch?"c":"",b||"—"));
+      });
+      e.appendChild(g);
+    }
+    e.appendChild(el("div","hh","変更のログ"));
+    var lg=(it.log||[]).slice().reverse();
+    if(!lg.length)e.appendChild(el("div","hnote","変更の記録はまだありません。"));
+    lg.forEach(function(r){
+      var d=el("div","hlog");
+      d.appendChild(el("div","meta",new Date(r.at).toLocaleString("ja-JP")+"　"+(r.by||"")));
+      (r.ch||[]).forEach(function(c){d.appendChild(el("div","",c.f+"：「"+(c.from||"なし")+"」→「"+(c.to||"なし")+"」"))});
+      e.appendChild(d);
+    });
+    var acts=el("div","acts");acts.style.justifyContent="flex-start";
+    var bk=el("button","link","戻る");bk.onclick=function(){histId=null;render()};
+    acts.appendChild(bk);e.appendChild(acts);
+    return e;
+  }
+  function canEdit(it){return true}
+  function lsUsers(){try{return JSON.parse(localStorage.getItem("nyu-saijiki-users")||"{}")}catch(e){return {}}}
+  function hex(buf){return Array.prototype.map.call(new Uint8Array(buf),function(b){return ("0"+b.toString(16)).slice(-2)}).join("")}
+  function needCrypto(){if(!window.crypto||!crypto.subtle)throw "この環境ではログインを利用できません。"}
+  async function sha(s){needCrypto();return hex(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)))}
+  async function pbk(pw,saltHex){
+    needCrypto();
+    var key=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveBits"]);
+    var salt=new Uint8Array(saltHex.match(/../g).map(function(h){return parseInt(h,16)}));
+    return hex(await crypto.subtle.deriveBits({name:"PBKDF2",salt:salt,iterations:100000,hash:"SHA-256"},key,256));
+  }
+  function rndHex(){var a=new Uint8Array(16);crypto.getRandomValues(a);return hex(a)}
+  async function getUser(id){
+    await dbP;
+    if(userColl){var s=await userColl.doc(id).get();return s.exists?s.data():null}
+    return lsUsers()[id]||null;
+  }
+  async function putUser(id,rec){
+    await dbP;
+    if(userColl){await userColl.doc(id).set(rec);return}
+    var all=lsUsers();all[id]=rec;try{localStorage.setItem("nyu-saijiki-users",JSON.stringify(all))}catch(e){}
+  }
+  function setMe(email,id){
+    me={id:id,email:email,master:email===MASTER};
+    try{localStorage.setItem("nyu-saijiki-me",JSON.stringify({email:email,id:id}))}catch(e){}
+  }
+  function logout(){if(SBON)sbSave(null);me=null;try{localStorage.removeItem("nyu-saijiki-me")}catch(e){}}
+  async function register(email,pw){
+    if(SBON)return sbRegister(email,pw);
+    var id=await sha(email);
+    if(await getUser(id))throw "このメールアドレスはすでに登録されています。";
+    var salt=rndHex();
+    await putUser(id,{salt:salt,hash:await pbk(pw,salt),at:Date.now()});
+    setMe(email,id);
+  }
+  async function login(email,pw){
+    if(SBON)return sbLogin(email,pw);
+    var id=await sha(email),u=await getUser(id);
+    if(!u||u.hash!==await pbk(pw,u.salt))throw "メールアドレスまたはパスワードが違います。";
+    setMe(email,id);
+  }
+  function dl(name,text){
+    var b=new Blob([text],{type:"application/json"});
+    var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(a.href)},500);
+  }
+  function doImport(list,replace){
+    if(coll){
+      var ps=list.map(function(it){return persist(it)});
+      if(replace){
+        var keep={};list.forEach(function(it){keep[it.id]=1});
+        items.forEach(function(it){if(!keep[it.id])ps.push(coll.doc(it.id).delete())});
+      }
+      return Promise.all(ps);
+    }
+    var oldItems=items,map={};
+    if(!replace)items.forEach(function(it){map[it.id]=it});
+    list.forEach(function(it){map[it.id]=it});
+    items=Object.keys(map).map(function(k){return map[k]});
+    lsSave();render();
+    if(SBON){
+      var ps2=list.map(sbUpsert);
+      if(replace){var keep2={};list.forEach(function(it){keep2[it.id]=1});oldItems.forEach(function(it){if(!keep2[it.id])ps2.push(sbDelete(it.id))})}
+      return Promise.all(ps2);
+    }
+    return Promise.resolve();
+  }
+  function adminForm(pg){
+    var f=el("div","form");
+    var ta=el("textarea");ta.rows=10;ta.style.fontSize="12px";
+    var fi=document.createElement("input");fi.type="file";fi.accept=".json,application/json";fi.style.display="none";
+    var rep=document.createElement("input");rep.type="checkbox";rep.style.inlineSize="auto";
+    var rl=el("label");rl.style.display="flex";rl.style.gap="6px";rl.style.alignItems="center";
+    rl.appendChild(rep);rl.appendChild(document.createTextNode("現在のデータをすべて消して置き換える"));
+    var msg=el("p");msg.style.fontSize="13px";
+    var bx=el("button","btn","書き出す");bx.type="button";
+    var bf=el("button","link","ファイルを選ぶ");bf.type="button";
+    var bi=el("button","btn","読み込む");bi.type="button";
+    f.appendChild(el("div","hh","書き出し"));
+    f.appendChild(bx);
+    f.appendChild(el("div","hh","読み込み"));
+    f.appendChild(field("データ（JSON）",ta));
+    var r1=el("div");r1.appendChild(bf);r1.appendChild(fi);f.appendChild(r1);
+    f.appendChild(rl);f.appendChild(bi);f.appendChild(msg);
+    bx.onclick=function(){
+      var txt=JSON.stringify({app:"nyu-saijiki",version:1,exportedAt:new Date().toISOString(),items:items},null,1);
+      ta.value=txt;
+      try{dl("nyu-saijiki-"+new Date().toISOString().slice(0,10)+".json",txt)}catch(e){}
+      msg.textContent=items.length+"件を書き出しました。ダウンロードされない場合は、下の欄の内容をコピーして保存してください。";
+    };
+    bf.onclick=function(){fi.value="";fi.click()};
+    fi.onchange=function(){
+      var f0=fi.files&&fi.files[0];if(!f0)return;
+      var r=new FileReader();
+      r.onload=function(){ta.value=r.result;msg.textContent="ファイルを開きました。内容を確かめて、「読み込む」を押してください。"};
+      r.readAsText(f0);
+    };
+    bi.onclick=function(){
+      var data;try{data=JSON.parse(ta.value)}catch(e){msg.textContent="データの形式が正しくありません。";return}
+      var arr=Array.isArray(data)?data:(data&&data.items);
+      if(!Array.isArray(arr)){msg.textContent="季語のデータが見つかりません。";return}
+      var list=arr.filter(function(x){return x&&x.word}).map(function(x){
+        x.id=String(x.id||("k"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)));
+        if(SEASONS.indexOf(x.season)<0)x.season="春";
+        x.at=x.at||Date.now();return x;
+      });
+      if(!list.length){msg.textContent="読み込める季語がありません。";return}
+      if(!confirm(list.length+"件を読み込みます。"+(rep.checked?"現在のデータはすべて消えます。":"同じIDの季語は上書きされます。")+"よろしいですか？"))return;
+      msg.textContent="読み込んでいます…";
+      doImport(list,rep.checked).then(function(){msg.textContent=list.length+"件を読み込みました。"}).catch(function(){msg.textContent="読み込めませんでした。"});
+    };
+    pg.appendChild(f);
+  }
+  function joinForm(pg){
+    var box=el("div");pg.appendChild(box);
+    var mode="login";
+    function draw(){
+      box.textContent="";
+      if(me){
+        box.appendChild(el("p","","ログイン中："+me.email+(me.master?"（マスターアカウント）":"")));
+        var out=el("button","btn","ログアウト");out.type="button";
+        out.onclick=function(){logout();draw();render()};
+        box.appendChild(out);return;
+      }
+      var f=el("div","form");
+      var em=el("input");em.type="email";em.autocomplete="username";
+      var pw=el("input");pw.type="password";pw.autocomplete=mode==="login"?"current-password":"new-password";
+      f.appendChild(field("メールアドレス",em));f.appendChild(field("パスワード",pw));
+      var pw2=null;
+      if(mode==="reg"){pw2=el("input");pw2.type="password";pw2.autocomplete="new-password";f.appendChild(field("パスワード（確認）",pw2))}
+      var go=el("button","btn",mode==="login"?"ログイン":"新規登録");go.type="button";
+      var msg=el("p");msg.style.fontSize="13px";
+      var w=el("div");w.style.textAlign="center";w.appendChild(go);
+      f.appendChild(w);f.appendChild(msg);
+      var sw=el("button","link",mode==="login"?"新規登録はこちら":"ログインはこちら");sw.type="button";
+      sw.onclick=function(){mode=mode==="login"?"reg":"login";draw()};
+      var sp=el("div");sp.style.textAlign="center";sp.appendChild(sw);f.appendChild(sp);
+      go.onclick=async function(){
+        var e=em.value.trim().toLowerCase();
+        if(e.indexOf("@")<0){em.focus();return}
+        if(pw.value.length<6){msg.textContent="パスワードは6文字以上で入力してください。";return}
+        if(pw2&&pw2.value!==pw.value){msg.textContent="確認用のパスワードが一致しません。";return}
+        go.disabled=true;msg.textContent="確認しています…";
+        try{await (mode==="login"?login(e,pw.value):register(e,pw.value));draw();render()}
+        catch(x){msg.textContent=typeof x==="string"?x:"うまくいきませんでした。もう一度お試しください。";go.disabled=false}
+      };
+      box.appendChild(f);
+    }
+    draw();
+  }
+  function cropper(file,done){
+    var rd=new FileReader();
+    rd.onload=function(){
+      var im=new Image();
+      im.onload=function(){
+        var S=280,OUT=360;
+        var min=S/Math.min(im.width,im.height),s=min;
+        var ox=(S-im.width*s)/2,oy=(S-im.height*s)/2;
+        var ov=el("div","crop-ov");
+        var cv=document.createElement("canvas");cv.width=cv.height=S;
+        var ctx=cv.getContext("2d");
+        var sl=document.createElement("input");sl.type="range";sl.min="1";sl.max="3";sl.step="0.01";sl.value="1";
+        var bt=el("div","foot");var ok=el("button","btn","切り取る"),cn=el("button","link","キャンセル");
+        function clamp(){ox=Math.min(0,Math.max(S-im.width*s,ox));oy=Math.min(0,Math.max(S-im.height*s,oy))}
+        function draw(){clamp();ctx.fillStyle="#fff";ctx.fillRect(0,0,S,S);ctx.drawImage(im,ox,oy,im.width*s,im.height*s)}
+        sl.oninput=function(){var cx=(S/2-ox)/s,cy=(S/2-oy)/s;s=min*parseFloat(sl.value);ox=S/2-cx*s;oy=S/2-cy*s;draw()};
+        var dr=null;
+        cv.onpointerdown=function(e){dr={x:e.clientX,y:e.clientY,ox:ox,oy:oy};cv.setPointerCapture(e.pointerId)};
+        cv.onpointermove=function(e){if(!dr)return;ox=dr.ox+(e.clientX-dr.x);oy=dr.oy+(e.clientY-dr.y);draw()};
+        cv.onpointerup=cv.onpointercancel=function(){dr=null};
+        ok.onclick=function(){
+          var o=document.createElement("canvas");o.width=o.height=OUT;var c=o.getContext("2d"),k=OUT/S;
+          c.fillStyle="#fff";c.fillRect(0,0,OUT,OUT);c.drawImage(im,ox*k,oy*k,im.width*s*k,im.height*s*k);
+          done(o.toDataURL("image/jpeg",0.8));document.body.removeChild(ov);
+        };
+        cn.onclick=function(){document.body.removeChild(ov)};
+        bt.appendChild(ok);bt.appendChild(cn);
+        ov.appendChild(el("p","","ドラッグで位置を、スライダーで大きさを決めてください"));
+        ov.appendChild(cv);ov.appendChild(sl);ov.appendChild(bt);
+        draw();document.body.appendChild(ov);
+      };
+      im.src=rd.result;
+    };
+    rd.readAsDataURL(file);
+  }
+  function imgField(state){
+    var wrap=el("div"),prev=el("div","imgprev");
+    var btn=el("button","link");btn.type="button";
+    var fi=document.createElement("input");fi.type="file";fi.accept="image/*";fi.style.display="none";
+    function show(){
+      prev.textContent="";
+      if(state.v){
+        var im=el("img","thumb");im.src=state.v;im.alt="";
+        var rm=el("button","link","画像を外す");rm.type="button";rm.onclick=function(){state.v=null;show()};
+        prev.appendChild(im);prev.appendChild(rm);
+      }
+      prev.style.display=state.v?"":"none";
+      btn.textContent=state.v?"画像を選び直す":"＋ 画像を加える";
+    }
+    btn.onclick=function(){fi.value="";fi.click()};
+    fi.onchange=function(){if(fi.files&&fi.files[0])cropper(fi.files[0],function(url){state.v=url;show()})};
+    show();wrap.appendChild(prev);wrap.appendChild(btn);wrap.appendChild(fi);
+    return wrap;
+  }
+  var addImg={v:null};
+  function mountImg(){$("f-img").textContent="";$("f-img").appendChild(imgField(addImg))}
+  var NAV=[["concept","コンセプト"],["join","参加"],["act","活動"],["contact","お問い<br>合わせ"]];
+  var PAGES={
+    concept:{t:"コンセプト",b:["ニュー新橋句会とニュー梅田句会による、新しい歳時記をつくる試み。"]},
+    join:{t:"参加",b:["ニュ・歳時記に季語を加えたい方は、ログインしてください。"]},
+    act:{t:"活動",b:["準備中です。"]},
+    admin:{t:"管理",b:["データの書き出しと読み込みができます。"]},
+    contact:{t:"お問い合わせ",b:["お問い合わせは、下記のフォームよりご連絡ください。"]}
+  };
+  function buildNav(){
+    var n=$("nav");n.textContent="";
+    var navList=NAV.slice();if(me&&me.master)navList.push(["admin","管理"]);
+    navList.forEach(function(x){
+      var b=el("button","dot");b.type="button";b.dataset.k=x[0];b.innerHTML=x[1];
+      b.onclick=function(){showPage(page===x[0]?null:x[0])};
+      n.appendChild(b);
+    });
+  }
+  function contactForm(pg){
+    var f=el("div","form");
+    var n=el("input"),m=el("input"),s=el("input"),b=el("textarea");
+    m.type="email";b.rows=8;
+    var send=el("button","btn","送信");send.type="button";
+    var msg=el("p");msg.style.fontSize="13px";
+    [field("お名前",n),field("メールアドレス",m),field("件名",s),field("本文",b)].forEach(function(x){f.appendChild(x)});
+    var w=el("div");w.style.textAlign="center";w.appendChild(send);
+    f.appendChild(w);f.appendChild(msg);
+    var TO="new.saijiki.2000@gmail.com";
+    send.onclick=function(){
+      if(!n.value.trim()){n.focus();return}
+      if(m.value.indexOf("@")<0){m.focus();return}
+      if(!b.value.trim()){b.focus();return}
+      var subj=s.value.trim()||"お問い合わせ";
+      send.disabled=true;msg.textContent="送信しています…";
+      function fail(){
+        send.disabled=false;
+        msg.textContent="送信できませんでした。お手数ですが、";
+        var a=el("a","link","メールアプリで送る");
+        a.href="mailto:"+TO+"?subject="+encodeURIComponent(subj)+"&body="+encodeURIComponent("お名前："+n.value.trim()+"\nメールアドレス："+m.value.trim()+"\n\n"+b.value.trim());
+        a.target="_top";a.style.fontSize="13px";
+        msg.appendChild(a);msg.appendChild(document.createTextNode("か、"+TO+" 宛に直接お送りください。"));
+      }
+      var ctl=window.AbortController?new AbortController():null;
+      var timer=setTimeout(function(){if(ctl)ctl.abort()},15000);
+      fetch("https://formsubmit.co/ajax/"+TO,{
+        method:"POST",
+        headers:{"Content-Type":"application/json","Accept":"application/json"},
+        body:JSON.stringify({name:n.value.trim(),email:m.value.trim(),_subject:subj,message:b.value.trim(),_template:"box"}),
+        signal:ctl?ctl.signal:undefined
+      }).then(function(r){return r.json()}).then(function(d){
+        clearTimeout(timer);
+        if(d&&(d.success===true||d.success==="true")){
+          n.value=m.value=s.value=b.value="";send.disabled=false;
+          msg.textContent="送信しました。お問い合わせありがとうございます。";
+        }else fail();
+      }).catch(function(){clearTimeout(timer);fail()});
+    };
+    pg.appendChild(f);
+  }
+  function showPage(key){
+    page=key;editingId=null;histId=null;clearOpen();
+    if(key){
+      var P=PAGES[key],pg=$("pages");pg.textContent="";
+      pg.appendChild(el("h2","",P.t));
+      P.b.forEach(function(s){pg.appendChild(el("p","",s))});
+      if(key==="contact")contactForm(pg);
+      if(key==="join")joinForm(pg);
+      if(key==="admin")adminForm(pg);
+    }
+    render();window.scrollTo(0,0);
+  }
+  function clearOpen(){
+    openId=null;
+    try{if(/^#k=/.test(location.hash))history.pushState(null,"",location.pathname+location.search)}catch(e){}
+  }
+  function openKigo(id){
+    editingId=null;histId=null;page=null;openId=id;
+    try{history.pushState(null,"","#k="+encodeURIComponent(id))}catch(e){}
+    render();window.scrollTo(0,0);
+  }
+  function closeKigo(){clearOpen();render()}
+  function route(){
+    var m=/^#k=(.+)$/.exec(location.hash||"");
+    if(m){
+      var id;try{id=decodeURIComponent(m[1])}catch(e){id=m[1]}
+      openId=id;editingId=null;histId=null;page=null;
+    }else openId=null;
+    render();
+  }
+  window.addEventListener("popstate",route);
+  window.addEventListener("hashchange",route);
+  function tile(it){
+    var t=el("div","tile");
+    if(it.img){t.style.backgroundImage="linear-gradient(rgba(255,255,255,.6),rgba(255,255,255,.6)),url("+it.img+")";t.style.backgroundSize="cover";t.style.backgroundPosition="center"}
+    t.appendChild(el("span","tseason",it.season));
+    t.appendChild(el("div","tword",it.word));
+    if(it.yomi)t.appendChild(el("div","tyomi",it.yomi));
+    var ks=it.children||[];
+    if(ks.length){
+      var kd=el("div","tkids");
+      ks.forEach(function(k){
+        if(typeof k==="string")k={word:k};
+        var s=el("span","kid");
+        if(k.yomi){var r=document.createElement("ruby");r.appendChild(document.createTextNode(k.word));r.appendChild(el("rt","",k.yomi));s.appendChild(r)}
+        else s.textContent=k.word;
+        kd.appendChild(s);
+      });
+      t.appendChild(kd);
+    }
+    t.onclick=function(){openKigo(it.id)};
+    return t;
+  }
+  function hit(i){
+    var s=[i.word,i.yomi,i.desc];
+    (i.children||[]).forEach(function(k){s.push(typeof k==="string"?k:k.word+" "+(k.yomi||""))});
+    (i.examples||[]).forEach(function(k){s.push(k.text,k.by)});
+    (i.sources||[]).forEach(function(k){s.push(k)});
+    return s.join("\n").toLowerCase().indexOf(qs.toLowerCase())>=0;
+  }
+  function renderTabs(){
+    var t=$("tabs");t.textContent="";
+    SEASONS.forEach(function(s){
+      var b=el("button",s===cur?"on":"",s);
+      b.onclick=function(){cur=s;renderTabs();render()};
+      t.appendChild(b);
+    });
+    var br=el("div");br.style.flexBasis="100%";t.appendChild(br);
+    [["ヨコ",false],["タテ",true]].forEach(function(m){
+      var b=el("button",vertical===m[1]?"on":"",m[0]);b.style.fontSize="13px";
+      b.onclick=function(){vertical=m[1];try{localStorage.setItem("nyu-saijiki-vert",vertical?"1":"0")}catch(e){}renderTabs();render()};
+      t.appendChild(b);
+    });
+    var sp=el("span");sp.style.width="16px";t.appendChild(sp);
+    [["一覧",false],["ボックス",true]].forEach(function(m){
+      var b=el("button",tiles===m[1]?"on":"");b.title=m[0];b.setAttribute("aria-label",m[0]);
+      b.innerHTML=m[1]
+        ?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="vertical-align:middle"><rect x="4" y="4" width="6.5" height="6.5"/><rect x="13.5" y="4" width="6.5" height="6.5"/><rect x="4" y="13.5" width="6.5" height="6.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5"/></svg>'
+        :'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="vertical-align:middle"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
+      b.onclick=function(){tiles=m[1];try{localStorage.setItem("nyu-saijiki-tiles",tiles?"1":"0")}catch(e){}renderTabs();render()};
+      t.appendChild(b);
+    });
+  }
+
+  function editor(it){
+    var e=el("div","entry");
+    var form=el("div","form");form.style.marginTop="0";
+    var sel=el("select");SEASONS.forEach(function(s){sel.appendChild(el("option","",s))});sel.value=it.season;
+    var w=el("input");w.value=it.word||"";
+    var y=el("input");y.value=it.yomi||"";
+    var row=el("div","row");row.appendChild(field("季語",w));row.appendChild(field("読み",y));
+    var kids=el("div");(it.children||[]).forEach(function(k){kidRow(kids,k)});
+    var addk=el("button","link","＋ 子季語を加える");addk.type="button";addk.onclick=function(){kidRow(kids)};
+    var ds=el("textarea");ds.rows=4;ds.value=it.desc||"";
+    var kus=el("div");(it.examples||[]).forEach(function(k){kuRow(kus,k)});
+    var addu=el("button","link","＋ 句を加える");addu.type="button";addu.onclick=function(){kuRow(kus)};
+    var srcs=el("div");(it.sources||[]).forEach(function(s){srcRow(srcs,s)});if(!(it.sources||[]).length)srcRow(srcs);
+    var adds=el("button","link","＋ 出典を加える");adds.type="button";adds.onclick=function(){srcRow(srcs)};
+    var imS={v:it.img||null};var foot=el("div","foot");
+    var ok=el("button","btn","保存"),cn=el("button","link","キャンセル"),dl=el("button","link","削除");
+    foot.appendChild(ok);foot.appendChild(cn);if(me&&(me.master||(it.owner&&it.owner===me.id)))foot.appendChild(dl);
+    [field("季節",sel),row,kids,addk,field("解説",ds),kus,addu,srcs,adds,imgField(imS),foot].forEach(function(n){form.appendChild(n)});
+    e.appendChild(form);
+    ok.onclick=function(){
+      var word=w.value.trim();if(!word){w.focus();return}
+      var before=snapOf(it);it.season=sel.value;it.word=word;it.yomi=y.value.trim();it.desc=ds.value.trim();
+      it.children=collectKids(kids);it.examples=collectKus(kus);it.sources=collectSrcs(srcs);it.img=imS.v||"";logChange(it,before);
+      persist(it);editingId=null;render();
+    };
+    cn.onclick=function(){editingId=null;render()};
+    dl.onclick=function(){remove(it)};
+    return e;
+  }
+
+  function render(){
+    if(page==="admin"&&!(me&&me.master))page=null;
+    document.title="ニュ・歳時記";
+    var wa=!!(me&&me.master);if(wa!==navAdmin){navAdmin=wa;buildNav()}
+    var box=$("list");box.textContent="";
+    $("tabs").style.display=(editingId===null&&openId===null&&page===null&&histId===null)?"":"none";
+    $("addbox").style.display=(editingId===null&&openId===null&&page===null&&histId===null&&me)?"":"none";
+    $("search").style.display=(editingId===null&&page===null)?"":"none";
+    box.style.display=page===null?"":"none";
+    $("pages").style.display=page===null?"none":"";
+    var nb=document.querySelectorAll("#nav .dot");for(var z=0;z<nb.length;z++)nb[z].classList.toggle("on",nb[z].dataset.k===page);
+    document.body.classList.toggle("v",vertical);
+    box.classList.toggle("grid",tiles&&openId===null&&editingId===null&&histId===null);
+    box.classList.toggle("detail",openId!==null&&editingId===null&&histId===null);
+    var order={"春":1,"夏":2,"秋":3,"冬":4,"新年":5};
+    var vis=items.filter(function(i){return editingId!==null?i.id===editingId:histId!==null?i.id===histId:openId!==null?i.id===openId:(qs?hit(i):i.season===cur)})
+      .sort(function(a,b){return (order[a.season]-order[b.season])||String(a.yomi||a.word).localeCompare(String(b.yomi||b.word),"ja")});
+    if(!vis.length&&items.length&&(editingId!==null||openId!==null||histId!==null)){editingId=null;histId=null;clearOpen();render();return}
+    if(!vis.length){box.appendChild(el("div","empty",qs?"見つかりません":"まだ季語がありません"));return}
+    vis.forEach(function(it){
+      if(it.id===editingId){box.appendChild(editor(it));return}
+      if(it.id===histId){box.appendChild(historyView(it));return}
+      if(tiles&&openId===null){box.appendChild(tile(it));return}
+      var e=el("div","entry");
+      e.appendChild(el("span","season",it.season));
+      var h2=el("h2","",it.word);
+      if(openId===null){h2.style.cursor="pointer";h2.onclick=function(){openKigo(it.id)}}
+      else document.title=it.word+" | ニュ・歳時記";
+      e.appendChild(h2);
+      if(it.yomi)e.appendChild(el("span","yomi",it.yomi));
+      (it.children||[]).forEach(function(k){
+        if(typeof k==="string")k={word:k};
+        var s=el("span","kid");
+        if(k.yomi){var r=document.createElement("ruby");r.appendChild(document.createTextNode(k.word));r.appendChild(el("rt","",k.yomi));s.appendChild(r)}
+        else s.textContent=k.word;
+        e.appendChild(s);
+      });
+      if(it.desc)e.appendChild(el("div","desc",openId!==null||it.desc.length<=60?it.desc:it.desc.slice(0,60)+"…"));
+      (openId!==null?(it.examples||[]):(it.examples||[]).slice(0,1)).forEach(function(k){
+        var p=el("div","ku",k.text);
+        if(k.by)p.appendChild(el("small","",k.by));
+        e.appendChild(p);
+      });
+      if(openId!==null&&it.sources&&it.sources.length){var sg=el("div","srcs");sg.appendChild(el("div","srchead","出典"));it.sources.forEach(function(s,i){sg.appendChild(el("div","src",(i+1)+". "+s))});e.appendChild(sg)}
+      var acts=el("div","acts");
+      var ed=el("button","edit");ed.type="button";ed.setAttribute("aria-label","編集");ed.title="編集";
+      ed.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>';
+      ed.onclick=function(){editingId=it.id;render();window.scrollTo(0,0)};
+      var hb=el("button","edit");hb.type="button";hb.setAttribute("aria-label","履歴");hb.title="履歴";
+      hb.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>';
+      hb.onclick=function(){histId=it.id;render();window.scrollTo(0,0)};
+      if(openId!==null){var bk=el("button","link","戻る");bk.onclick=closeKigo;acts.style.justifyContent="space-between";acts.appendChild(bk)}
+      if(editingId===null){
+        if(openId!==null){var ic=el("span");ic.style.display="flex";ic.style.gap="6px";ic.appendChild(hb);if(canEdit(it))ic.appendChild(ed);acts.appendChild(ic)}
+        else{var mb=el("button","link","詳細を見る →");mb.onclick=function(){openKigo(it.id)};acts.appendChild(mb)}
+        e.appendChild(acts);
+      }
+      if(it.img){var wr=el("div","entry hasimg");var im=el("img","thumb");im.src=it.img;im.alt="";e.className="body";wr.appendChild(im);wr.appendChild(e);box.appendChild(wr)}
+      else box.appendChild(e);
+    });
+  }
+
+  function resetAddForm(){
+    ["f-word","f-yomi","f-desc"].forEach(function(i){$(i).value=""});
+    $("f-kids").textContent="";
+    $("f-kus").textContent="";kuRow($("f-kus"));$("f-srcs").textContent="";srcRow($("f-srcs"));addImg.v=null;mountImg();
+  }
+
+  $("f-save").onclick=function(){
+    var word=$("f-word").value.trim();
+    if(!word){$("f-word").focus();return}
+    var it={
+      id:"k"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+      word:word,yomi:$("f-yomi").value.trim(),season:$("f-season").value,
+      desc:$("f-desc").value.trim(),children:collectKids($("f-kids")),examples:collectKus($("f-kus")),sources:collectSrcs($("f-srcs")),img:addImg.v||"",owner:me?me.id:"",at:Date.now()
+    };
+    it.first=snapOf(it);it.log=[];
+    if(!coll)items.push(it);
+    persist(it);
+    resetAddForm();
+    $("addbox").open=false;
+    cur=it.season;renderTabs();
+    if(!coll)render();
+  };
+  $("f-addkid").onclick=function(){kidRow($("f-kids"))};
+  $("q").oninput=function(){qs=this.value.trim();clearOpen();histId=null;render()};
+  var ttl=document.querySelector("h1");ttl.style.cursor="pointer";
+  ttl.onclick=function(){page=null;editingId=null;histId=null;clearOpen();cur=DEF;qs="";$("q").value="";$("addbox").open=false;renderTabs();render();window.scrollTo(0,0)};
+  $("f-addrow").onclick=function(){kuRow($("f-kus"))};
+  $("f-addsrc").onclick=function(){srcRow($("f-srcs"))};
+
+  kuRow($("f-kus"));
+  srcRow($("f-srcs"));mountImg();buildNav();renderTabs();
+  items=lsLoad();route();
+  if(SBON)sbStart();
+
+  var dbP=(async function(){
+    try{
+      if(SBON||!window.claude||!claude.use)return;
+      var db=await claude.use("db");
+      if(!db)return;
+      coll=db.collection("kigo");userColl=db.collection("users");
+      coll.onSnapshot(function(snap){
+        items=snap.docs.map(function(d){var x=d.data()||{};x.id=d.id;return x});
+        if(editingId===null)render();
+      },function(){coll=null;items=lsLoad();render()});
+    }catch(e){coll=null}
+  })();
+})();
+</script>
+</body>
+</html>
