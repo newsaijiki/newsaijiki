@@ -26,7 +26,11 @@
 <meta name="apple-mobile-web-app-title" content="ニュ・歳時記">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>ニュ・歳時記</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&display=swap">
+<link rel="preconnect" href="https://iknhbnbwnhesmurrcckj.supabase.co" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&display=swap"></noscript>
 <style>
 :root{color-scheme:light;--bg:#fff;--fg:#222;--sub:#777;--line:#e6e6e6;
  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -265,18 +269,52 @@ body.v .srcs{margin:0 14px}
   var known={},pend={},seq=0;
   try{pend=JSON.parse(localStorage.getItem("nyu-saijiki-pend")||"{}")}catch(e){pend={}}
   function pendSave(){try{localStorage.setItem("nyu-saijiki-pend",JSON.stringify(pend))}catch(e){}}
-  function cacheLoad(){
-    try{
-      var c=JSON.parse(localStorage.getItem("nyu-saijiki-cache")||"[]");
-      c.forEach(function(x){if(x._ts&&!x._light)known[x.id]=x._ts});
-      return c;
-    }catch(e){return []}
+  var loadingData=SBON;
+  function fastOf(x){return{id:x.id,_ts:x._ts,_light:true,word:x.word,yomi:x.yomi||"",season:x.season,desc:x.desc||"",children:x.children||[],examples:x.examples||[],sources:x.sources||[],owner:x.owner||"",at:x.at,img:"",first:{},log:[]}}
+  var idbP=null;
+  function idbOpen(){
+    if(idbP)return idbP;
+    idbP=new Promise(function(res){
+      try{
+        var rq=indexedDB.open("nyu-saijiki",1);
+        rq.onupgradeneeded=function(){rq.result.createObjectStore("kv")};
+        rq.onsuccess=function(){res(rq.result)};
+        rq.onerror=function(){res(null)};
+        rq.onblocked=function(){res(null)};
+      }catch(e){res(null)}
+    });
+    return idbP;
   }
+  function idbGet(k){
+    return idbOpen().then(function(db){return new Promise(function(res){
+      if(!db)return res(null);
+      try{var rq=db.transaction("kv").objectStore("kv").get(k);rq.onsuccess=function(){res(rq.result||null)};rq.onerror=function(){res(null)}}catch(e){res(null)}
+    })});
+  }
+  function idbSet(k,v){
+    return idbOpen().then(function(db){if(!db)return;try{db.transaction("kv","readwrite").objectStore("kv").put(v,k)}catch(e){}});
+  }
+  function cacheLoad(){
+    try{localStorage.removeItem("nyu-saijiki-cache")}catch(e){}
+    try{return JSON.parse(localStorage.getItem("nyu-saijiki-fast")||"[]")}catch(e){return []}
+  }
+  var cacheTimer=null;
+  function cacheFullSave(){clearTimeout(cacheTimer);idbSet("items",items.filter(function(x){return !x._light}))}
   function cacheSave(){
-    try{localStorage.setItem("nyu-saijiki-cache",JSON.stringify(items))}
-    catch(e){
-      try{localStorage.setItem("nyu-saijiki-cache",JSON.stringify(items.map(function(x){var o=Object.assign({},x);o.img="";o.first={};o.log=[];o._light=true;return o})))}catch(e2){}
-    }
+    try{localStorage.setItem("nyu-saijiki-fast",JSON.stringify(items.map(fastOf)))}catch(e){}
+    clearTimeout(cacheTimer);cacheTimer=setTimeout(cacheFullSave,500);
+  }
+  async function idbMerge(){
+    var full=await idbGet("items");
+    if(!full||!full.length)return;
+    var map={};items.forEach(function(x){map[x.id]=x});
+    full.forEach(function(f){
+      var cur=map[f.id];if(!cur)return;
+      if(pend[f.id]){var m=Object.assign({},f,cur);m._light=false;map[f.id]=m}
+      else if(!cur._ts||cur._ts===f._ts){map[f.id]=f;if(f._ts)known[f.id]=f._ts}
+    });
+    items=Object.keys(map).map(function(k){return map[k]});
+    render();
   }
   function byId(id){for(var i=0;i<items.length;i++)if(items[i].id===id)return items[i];return null}
   function bodyOf(it){return{word:it.word,yomi:it.yomi||"",season:it.season,desc:it.desc||"",examples:it.examples||[],children:it.children||[],sources:it.sources||[],img:it.img||"",owner:it.owner||"",first:it.first||{},log:it.log||[],at:it.at}}
@@ -298,7 +336,8 @@ body.v .srcs{margin:0 14px}
     try{
       if(op==="up"){
         var it=byId(id);
-        if(!it||it._light){delete pend[id];pendSave();return}
+        if(!it){delete pend[id];pendSave();return}
+        if(it._light)return;
         await sbFetch("/rest/v1/kigo?on_conflict=id",{method:"POST",prefer:"resolution=merge-duplicates,return=minimal",body:[{id:it.id,data:bodyOf(it),updated_at:new Date().toISOString()}]});
       }else{
         await sbFetch("/rest/v1/kigo?id=eq."+encodeURIComponent(id),{method:"DELETE"});
@@ -379,14 +418,18 @@ body.v .srcs{margin:0 14px}
     }
     (async function(){
       try{
+        await idbMerge();
         if(!items.length){
           var lt=await sbLight().catch(function(){return null});
-          if(lt&&lt.length){items=lt;render()}
+          if(lt&&lt.length){items=lt;loadingData=false;render()}
         }
         await sbSync(true);
         sbFlush();
       }catch(e){warn()}
+      finally{if(loadingData){loadingData=false;render()}}
     })();
+    window.addEventListener("pagehide",cacheFullSave);
+    document.addEventListener("visibilitychange",function(){if(document.hidden)cacheFullSave()});
     pullPages();
     setInterval(function(){if(!document.hidden)tick()},20000);
     document.addEventListener("visibilitychange",function(){if(!document.hidden)tick()});
@@ -1047,7 +1090,7 @@ body.v .srcs{margin:0 14px}
     var vis=items.filter(function(i){return editingId!==null?i.id===editingId:histId!==null?i.id===histId:openId!==null?i.id===openId:(qs?hit(i):i.season===cur)})
       .sort(function(a,b){return (order[a.season]-order[b.season])||String(a.yomi||a.word).localeCompare(String(b.yomi||b.word),"ja")});
     if(!vis.length&&items.length&&(editingId!==null||openId!==null||histId!==null)){editingId=null;histId=null;clearOpen();render();return}
-    if(!vis.length){box.appendChild(el("div","empty",qs?"見つかりません":"まだ季語がありません"));return}
+    if(!vis.length){box.appendChild(el("div","empty",qs?"見つかりません":(loadingData?"読み込んでいます…":"まだ季語がありません")));return}
     vis.forEach(function(it){
       if(it.id===editingId){box.appendChild(editor(it));return}
       if(it.id===histId){box.appendChild(historyView(it));return}
@@ -1094,7 +1137,7 @@ body.v .srcs{margin:0 14px}
         else{var mb=el("button","link","詳細を見る →");mb.onclick=function(){openKigo(it.id)};acts.appendChild(mb)}
         e.appendChild(acts);
       }
-      if(it.img){var wr=el("div","entry hasimg");var im=el("img","thumb");im.src=it.img;im.alt="";e.className="body";wr.appendChild(im);wr.appendChild(e);box.appendChild(wr)}
+      if(it.img){var wr=el("div","entry hasimg");var im=el("img","thumb");im.loading="lazy";im.decoding="async";im.src=it.img;im.alt="";e.className="body";wr.appendChild(im);wr.appendChild(e);box.appendChild(wr)}
       else box.appendChild(e);
     });
   }
